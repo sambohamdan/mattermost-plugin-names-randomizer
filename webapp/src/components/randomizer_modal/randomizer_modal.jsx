@@ -76,7 +76,7 @@ const Modal = ({visible, close}) => {
             fetchCurrentUsers().then((data) => {
                 setList([]);
                 data.forEach((item) => {
-                    addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), item.first_name + item.last_name);
+                    addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), item.first_name + ' ' + item.last_name);
                     setList([...list, item.first_name + ' ' + item.last_name]);
                 });
             });
