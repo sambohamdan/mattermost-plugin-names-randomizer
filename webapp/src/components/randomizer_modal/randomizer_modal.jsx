@@ -24,6 +24,7 @@ const Modal = ({visible, close}) => {
     const listWrapper = useRef(null);
     const [showEditMode, setShowEditMode] = useState(false);
     const [editModeChecked, setEditModeChecked] = useState(false);
+    const [resetModeChecked, setResetModeChecked] = useState(false);
     observeUrlChange(randomizerTrigger.parentElement);
 
     useEffect(() => {
@@ -70,6 +71,7 @@ const Modal = ({visible, close}) => {
         setShowEditMode(e.target.checked);
     };
     const handleFetchNames = (e) => {
+        setResetModeChecked(e.target.checked);
         if (e.target.checked) {
             fetchCurrentUsers().then((data) => {
                 setList([]);
@@ -97,6 +99,7 @@ const Modal = ({visible, close}) => {
     const handleReset = () => {
         setList([]);
         resetSpecificEntryInLocalStorage(STORAGE_ENTRY, getCurrentChannelName());
+        setResetModeChecked(false);
     };
 
     return (
@@ -139,6 +142,7 @@ const Modal = ({visible, close}) => {
                                     id='toggle-fetch-names'
                                     className='toggler toggle-fetch-names'
                                     onClick={handleFetchNames}
+                                    checked={resetModeChecked}
                                 />
                                 <div className='knobs'/>
                                 <div className='layer'/>
