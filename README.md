@@ -1,0 +1,1 @@
+# Mattermost - Names Randomizer plugin

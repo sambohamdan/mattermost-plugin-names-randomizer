@@ -1,0 +1,30 @@
+{
+    "id": "names.randomizer",
+    "name": "Names Randomizer",
+    "description": "This plugin integrate a randomizer for the entered names",
+    "homepage_url": "https://github.com/sambohamdan/mattermost-plugin-names-randomizer",
+    "support_url": "https://sambohamdan.github.io/",
+    "icon_path": "assets/main-icon.png",
+    "version": "1.0.0",
+    "min_server_version": "5.30.0",
+    "webapp": {
+        "bundle_path": "webapp/dist/main.js"
+    },
+    "settings_schema": {
+        "header": "Configure your Names Randomizer plugin settings below.",
+        "footer": "To contact the designer please follow the [link](https://sambohamdan.github.io/)."
+    },
+    "required_configuration": {
+        "ServiceSettings": {
+            "EnableGifPicker": true,
+            "EnableLocalMode": true,
+            "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
+        },
+        "FileSettings": {
+            "EnablePublicLink": true
+        },
+        "PluginSettings": {
+            "EnableUploads": true
+        }
+    }
+}
