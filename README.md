@@ -1,7 +1,7 @@
 # Mattermost - Names Randomizer
 
 
-### Integrate into Mattermost web app a randomizer for a list of names. <img src="./main-icon.png" width="30" height="30" />
+### Integrate into Mattermost web app a randomizer for a list of names. <img src="./assets/main-icon.png" width="30" height="30" />
 
 
 ## Features
@@ -18,7 +18,7 @@
 
 ## Preview
 <img src="https://i.ibb.co/6016QsT/entry.png" width="400"/> <img src="https://i.ibb.co/pZpBkH7/edit-mode.png" width="400" />
-<img src="https://i.ibb.co/qRfqT1R/saved-names.png" width="400" /> <img src="https://i.ibb.co/v1X6Hpj/trigger-location-in-mattermost-header.png" width="400" />
+<img src="https://i.ibb.co/qRfqT1R/saved-names.png" width="400" /> <img src="https://i.ibb.co/wYrMpM7/Bildschirmfoto-2022-05-22-um-18-53-49.png" width="400" />
 
 ## Tech
 
