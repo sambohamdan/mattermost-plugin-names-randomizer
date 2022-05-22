@@ -8,6 +8,7 @@
 - Save entered names
 - ✨The names are channel dependent✨ 
 - Saved Names are editable during Edit Mode
+- Shuffle names
 
 
 #
