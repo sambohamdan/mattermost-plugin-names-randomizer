@@ -53,12 +53,17 @@ const Modal = ({visible, close}) => {
         }
     };
     const handleChange = (e) => {
+        if (e.target.value === '') {
+            return;
+        }
         setEnteredName(e.target.value);
     };
     const handleRenderer = () => {
-        setList([...list, enteredName]);
-        addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), enteredName);
-        setEnteredName('');
+        if (enteredName !== '') {
+            setList([...list, enteredName]);
+            addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), enteredName);
+            setEnteredName('');
+        }
     };
     const handleEnterKey = (e) => {
         if (e.key === 'Enter') {
