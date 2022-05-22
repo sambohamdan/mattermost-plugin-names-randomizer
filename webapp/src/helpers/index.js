@@ -1,3 +1,4 @@
+export const MESSAGE_SESSION_LIFE = 2500;
 export const fetchCurrentUsers = () => {
     const currentChannelKey = Object.keys(localStorage).filter((v) => v.startsWith('focalboardLastViewedChannel'));
     const currentChannelID = localStorage.getItem(currentChannelKey);

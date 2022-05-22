@@ -2,7 +2,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 
-import {fetchCurrentUsers, getCurrentChannelName, observeUrlChange} from '../../helpers';
+import {
+    fetchCurrentUsers,
+    getCurrentChannelName,
+    observeUrlChange,
+    MESSAGE_SESSION_LIFE,
+} from '../../helpers';
 import {
     addToLocalStorage,
     STORAGE_ENTRY,
@@ -15,6 +20,7 @@ const Modal = ({visible, close}) => {
     if (!visible) {
         return null;
     }
+    let messageTimer;
     const MAIN_CHANNEL_INPUT_FIELD = 'post_textbox';
     const MAIN_HEADER_RANDOMIZER_BTN = 'randomizer-icon';
     const mainInputField = document.querySelectorAll(`#${MAIN_CHANNEL_INPUT_FIELD}`)[0];
@@ -25,28 +31,29 @@ const Modal = ({visible, close}) => {
     const [showEditMode, setShowEditMode] = useState(false);
     const [editModeChecked, setEditModeChecked] = useState(false);
     const [resetModeChecked, setResetModeChecked] = useState(false);
-    observeUrlChange(randomizerTrigger.parentElement);
+    const [isError, setIsError] = useState(null);
+    if (window) {
+        observeUrlChange(randomizerTrigger.parentElement);
+    }
 
     useEffect(() => {
         // pre-render saved names
-        if (isMainEntryDefined()) {
-            if (Object.keys(JSON.parse(localStorage.getItem(STORAGE_ENTRY))).includes(getCurrentChannelName())) {
+        const storageKeys = isMainEntryDefined() && Object.keys(JSON.parse(localStorage.getItem(STORAGE_ENTRY)));
+        if (storageKeys) {
+            if (storageKeys.includes(getCurrentChannelName())) {
                 if (getFromLocalStorage(STORAGE_ENTRY, getCurrentChannelName()).length > 0) {
                     setList(getFromLocalStorage(STORAGE_ENTRY, getCurrentChannelName()));
                 }
             }
         }
     }, []);
-
     const closeHandler = (e) => {
         if (e.target.classList.contains('modal-wrapper') || e.target.classList.contains('close')) {
             close();
         }
     };
     const handleChange = (e) => {
-        if (e.target.value) {
-            setEnteredName(e.target.value);
-        }
+        setEnteredName(e.target.value);
     };
     const handleRenderer = () => {
         setList([...list, enteredName]);
@@ -74,11 +81,16 @@ const Modal = ({visible, close}) => {
         setResetModeChecked(e.target.checked);
         if (e.target.checked) {
             fetchCurrentUsers().then((data) => {
+                resetSpecificEntryInLocalStorage(STORAGE_ENTRY, getCurrentChannelName());
                 setList([]);
+                const tempList = [];
+                let fullName = '';
                 data.forEach((item) => {
-                    addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), item.first_name + ' ' + item.last_name);
-                    setList([...list, item.first_name + ' ' + item.last_name]);
+                    fullName = item.first_name + ' ' + item.last_name;
+                    addToLocalStorage(STORAGE_ENTRY, getCurrentChannelName(), fullName);
+                    tempList.push(fullName);
                 });
+                setList(tempList);
             });
         }
     };
@@ -100,6 +112,29 @@ const Modal = ({visible, close}) => {
         setList([]);
         resetSpecificEntryInLocalStorage(STORAGE_ENTRY, getCurrentChannelName());
         setResetModeChecked(false);
+    };
+    const handleDeleteCurrentName = (e) => {
+        const currentParentText = e.currentTarget.previousSibling.textContent;
+        const isNameAvailable = list.some((name) => name === currentParentText);
+
+        setIsError(!isNameAvailable);
+
+        // remove error message (if available) after delay.
+        if (!isNameAvailable) {
+            messageTimer = setTimeout(() => {
+                setIsError(false);
+                clearTimeout(messageTimer);
+            }, MESSAGE_SESSION_LIFE);
+        }
+
+        if (isNameAvailable || !isError) {
+            list.forEach((name, index) => {
+                if (name === currentParentText) {
+                    // eslint-disable-next-line max-nested-callbacks
+                    setList((currentList) => (currentList.filter((_, i) => i !== index)));
+                }
+            });
+        }
     };
 
     return (
@@ -128,6 +163,7 @@ const Modal = ({visible, close}) => {
                         onKeyDown={handleEnterKey}
                         value={enteredName}
                         autoFocus={true}
+                        autoComplete='off'
                     />
                     <button
                         id='add'
@@ -173,11 +209,22 @@ const Modal = ({visible, close}) => {
                 <ol
                     className='saved-names'
                     ref={listWrapper}
-                    contentEditable={showEditMode && 'true'}
                 >
                     {list.map((item, index) => (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <li key={index}>{item}</li>
+                        <li
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
+                            className={editModeChecked && 'can-be-hovered'}
+                        >
+                            <span
+                                contentEditable={showEditMode && 'true'}
+                                className={`${editModeChecked && 'change-selection-color'}`}
+                            >{item}</span>
+                            <button
+                                id='delete-current-name'
+                                onClick={handleDeleteCurrentName}
+                            >{'x'}</button>
+                        </li>
                     ))}
                 </ol>
                 <button
@@ -201,6 +248,10 @@ const Modal = ({visible, close}) => {
                 >
                     {'Save Changes'}
                 </button>
+                <p
+                    className={`${(isError && editModeChecked) ? 'is-displayed' : 'is-hidden'}`}
+                    id='error-message'
+                >{'You can\'t remove a name that hasn\'t been saved yet.'}</p>
                 <a
                     className='designer-link'
                     href='https://sambohamdan.github.io/'
@@ -252,6 +303,15 @@ const modalStyleContent = `@keyframes animateIn {
 
 #randomizer button#add:hover {
     background-color: #3db887;
+}
+
+#randomizer #error-message {
+    position: absolute;
+    bottom: 55px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: red;
+    margin: 0;
 }
 
 #randomizer .form input#name {
@@ -306,19 +366,41 @@ const modalStyleContent = `@keyframes animateIn {
 }
 
 .modal-randomizer .saved-names li {
+    position: relative;
     animation-name: animateIn;
     animation-duration: 250ms;
     animation-delay: calc(var(--animation-order) * 50ms);
     animation-fill-mode: both;
     animation-timing-function: ease-in-out;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
-.modal-randomizer .saved-names li::-moz-selection {
+.modal-randomizer .saved-names li span.change-selection-color::-moz-selection {
     background: red;
 }
 
-.modal-randomizer .saved-names li::selection {
+.modal-randomizer .saved-names li span.change-selection-color::selection {
     background: red;
+}
+
+.modal-randomizer .saved-names li.can-be-hovered:hover > #delete-current-name {
+    display: inline-block;
+}
+
+.modal-randomizer .saved-names li #delete-current-name {
+    position: absolute;
+    display: none;
+    border: 0;
+    background-color: #d21a00;
+    margin-left: 12px;
+    padding: 0 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.modal-randomizer .saved-names li #delete-current-name:hover {
+    background-color: #d24b4e;
 }
 
 .modal-randomizer .saved-names {
@@ -534,6 +616,8 @@ a.designer-link {
     color: #fff;
     text-shadow: 0 1px 2px #75b663, 1px 3px 1px #5ea04b, 2px 5px 1px #5b9c49;
 }
+
+a.designer-link:focus,
 a.designer-link:hover {
     text-decoration: none;
     color: #fff;
